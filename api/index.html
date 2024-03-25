@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News Site</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+    <style>
+        /* Stili CSS */
+        body {
+            background-color: #1f2a38;
+            color: #fff;
+        }
+
+        header {
+            background-color: #1a2533;
+            color: #fff;
+            padding: 10px;
+            text-align: center;
+        }
+
+        nav {
+            background-color: #1a2533;
+            padding: 10px;
+            text-align: center;
+        }
+
+        nav a {
+            color: #fff;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+
+        nav a:hover {
+            text-decoration: underline;
+        }
+
+        .article {
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 20px;
+        }
+
+        .article h2 {
+            margin-top: 0;
+        }
+
+        .article img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .favorite-btn {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+
+       
+        .end-of-favorites {
+            text-align: center;
+            margin-top: 20px;
+            color: #ccc;
+        }
+    </style>
+    <link rel="stylesheet" href="stile.css">
+</head>
+
+<body>
+    <div id="animation-container">
+        <div class="animation">
+
+            <h1>Indice d'Informazione</h1>
+            <p>Punta sempre nella direzione delle notizie più rilevanti!</p>
+            <img src="img/newspaper.gif" alt="Macchinetta del caffè" width="200">
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+        </div>
+    </div>
+    <div id="home" class="hidden">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <img src="img/news.png" width="60" alt="">
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item active">
+                        <a class="nav-link" href="index.html">Home <span class="sr-only">(current)</span></a>
+                    </li>
+
+                    <li class="nav-item dropdown">
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary dropdown-toggle" type="button"
+                                id="categoryDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                Categories
+                            </button>
+                            <div class="dropdown-menu" aria-labelledby="categoryDropdown">
+                                <a class="dropdown-item" href="#" onclick="getNewsByCategory('business')">Business</a>
+                                <a class="dropdown-item" href="#"
+                                    onclick="getNewsByCategory('entertainment')">Entertainment</a>
+                                <a class="dropdown-item" href="#" onclick="getNewsByCategory('general')">General</a>
+                                <a class="dropdown-item" href="#" onclick="getNewsByCategory('health')">Health</a>
+                                <a class="dropdown-item" href="#" onclick="getNewsByCategory('science')">Science</a>
+                                <a class="dropdown-item" href="#" onclick="getNewsByCategory('sports')">Sports</a>
+                                <a class="dropdown-item" href="#"
+                                    onclick="getNewsByCategory('technology')">Technology</a>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+                <form class="form-inline my-2 my-lg-0">
+                    
+                    <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search"
+                        id="navbarSearchInput">
+
+                    
+                    <button class="btn btn-outline-success my-2 my-sm-0" type="button"
+                        onclick="searchNews()">Search</button>
+
+                </form>
+
+                <li><img src="img/pieno.png" alt="button preferiti" width="30" href="#" onclick="showFavorites()"></li>
+
+            </div>
+
+        </nav>
+        <a href="google.com"></a>
+        <img src="" alt="">
+
+
+        <div class="container" id="appleNews">
+            
+        </div>
+
+        <div class="container" id="usNews">
+            
+        </div>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        
+        async function fetchNews(endpoint, params) {
+            const url = new URL(endpoint);
+            Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
+            const response = await fetch(url);
+            const data = await response.json();
+            return data.articles;
+        }
+
+        
+        function displayArticles(containerId, articles) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = ''; 
+            articles.forEach(article => {
+                const div = document.createElement('div');
+                div.classList.add('article');
+                div.innerHTML = `
+      <br>
+      <div>
+        <article class="card">
+            <div class="card__publication">
+                <img src="${article.urlToImage}" alt="${article.title}">
+                <div>
+                </div>
+            </div>
+            <div class="card__info">
+                <h2 class="card__title">${article.title}</h2>
+                <p class="card__description">${article.description}</p>
+                <!-- Pulsante per aggiungere/rimuovere dai preferiti -->
+                <button class="btn btn-primary" onclick="toggleFavorite('${article.title}', '${article.url}', '${article.urlToImage}', '${article.description}')">add/remove from favorites</button>
+                <!-- Pulsante "Guarda di più" -->
+                <br>
+                <a href="${article.url}">look more...</a>
+    
+            </div>
+        </article>
+    </div>
+    <br>
+    `;
+                container.appendChild(div);
+            });
+        }
+
+
+
+        
+        function toggleFavorite(title, url, imageUrl, description) {
+            const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+            const index = favorites.findIndex(article => article.title === title);
+            if (index === -1) {
+                
+                favorites.push({ title, url, imageUrl, description });
+                alert('Articolo aggiunto ai Preferiti!');
+            } else {
+                
+                favorites.splice(index, 1);
+                alert('Articolo rimosso dai Preferiti!');
+            }
+            localStorage.setItem('favorites', JSON.stringify(favorites));
+        }
+
+        
+        function showFavorites() {
+            const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+            if (favorites.length > 0) {
+                displayArticles('appleNews', favorites);
+                const container = document.getElementById('appleNews');
+                container.insertAdjacentHTML('beforeend', '<p class="end-of-favorites">Fine delle notizie preferite</p>'); 
+                alert('Nessun articolo preferito trovato.');
+            }
+        }
+
+        const today = new Date().toISOString().split('T')[0];
+        
+        fetchNews('http://localhost:3000/top-headlines', {
+            from: today,
+            sortBy: 'popularity',
+            country: 'us',
+            apiKey: '3d5846fa1ec44c559d6a7cb3be8569b0'
+        }).then(articles => displayArticles('usNews', articles));
+
+        
+        function searchNews() {
+            const apiKey = '3d5846fa1ec44c559d6a7cb3be8569b0';
+            const searchQuery = document.getElementById('navbarSearchInput').value; 
+
+            
+            fetch(`http://localhost:3000/news-day?query=${searchQuery}`)
+                .then(response => response.json())
+                .then(data => {
+                    const newsList = document.getElementById('appleNews');
+                    newsList.innerHTML = ''; 
+
+                    
+                    displayArticles('appleNews', data.articles);
+                })
+                .catch(error => console.error('Errore durante la ricerca di notizie:', error));
+        }
+
+        
+        function getNewsByCategory(category) {
+            const apiKey = '3d5846fa1ec44c559d6a7cb3be8569b0';
+
+            fetchNews('http://localhost:3000/top-headlines', {
+                category: category,
+                country: 'us',
+                apiKey: apiKey
+            })
+                .then(articles => displayArticles('usNews', articles))
+                .catch(error => console.error('Errore durante la ricerca di notizie per categoria:', error));
+        }
+        
+        async function getNewsData() {
+            const storedData = localStorage.getItem('newsData');
+            if (storedData) {
+                const parsedData = JSON.parse(storedData);
+                const now = new Date();
+                const storedDate = new Date(parsedData.timestamp);
+                
+                if ((now - storedDate) < 24 * 60 * 60 * 1000) {
+                    return parsedData.articles; 
+                }
+            }
+
+            
+            const apiKey = '3d5846fa1ec44c559d6a7cb3be8569b0';
+            const today = new Date().toISOString().split('T')[0];
+            const response = await fetchNews('http://localhost:3000/top-headlines', {
+                from: today,
+                sortBy: 'popularity',
+                country: 'us',
+                apiKey: apiKey
+            });
+
+            
+            const data = await response.json();
+            localStorage.setItem('newsData', JSON.stringify({ articles: data.articles, timestamp: new Date() }));
+            return data.articles;
+        }
+
+        
+        async function fetchAndDisplayNews(containerId) {
+            try {
+                const articles = await getNewsData();
+                displayArticles(containerId, articles);
+            } catch (error) {
+                console.error('Errore durante il recupero delle notizie:', error);
+            }
+        }
+
+        
+        fetchAndDisplayNews('usNews');
+
+        document.addEventListener('DOMContentLoaded', function () {
+    var animationContainer = document.getElementById('animation-container');
+    var home = document.getElementById('home');
+
+    
+    setTimeout(function () {
+        animationContainer.style.display = 'none';
+        home.classList.remove('hidden');
+    }, 6000); 
+
+    
+  
+});
+
+document.addEventListener("DOMContentLoaded", function() {
+    var progressBar = document.getElementById("progress-bar");
+    var duration = 6000; 
+    var interval = 100; 
+
+    var startTime = new Date().getTime();
+    var endTime = startTime + duration;
+
+    function updateProgressBar() {
+        var currentTime = new Date().getTime();
+        var elapsedTime = Math.min(duration, currentTime - startTime);
+        var progress = (elapsedTime / duration) * 100;
+        progressBar.style.width = progress + "%";
+
+        if (currentTime < endTime) {
+            setTimeout(updateProgressBar, interval);
+        }
+    }
+
+    updateProgressBar();
+});
+
+    </script>
+</body>
+
+</html>
